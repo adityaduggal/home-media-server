@@ -1,0 +1,12 @@
+# Credentials and Environment
+variables.env
+*.env
+.ssh/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.log
+*.tmp
