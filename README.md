@@ -6,6 +6,11 @@ An all-in-one script to transform a fresh Ubuntu 24.04 install into a high-perfo
 1. **Clone the repo:**
    `git clone https://github.com/adityaduggal/home-media-server.git`
 2. **Set your variables:** Edit `setup.sh` or `variables.env`.
+
+Copy the template to create your local private config:
+```bash
+cp variables.env.example variables.env
+nano variables.env
 3. **Run the installer:** `chmod +x setup.sh && ./setup.sh`
 
 ## 🛠 Features
