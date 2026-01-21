@@ -55,12 +55,60 @@ systemctl --user status <app_name>
 systemctl --user restart <app_name>
 ```
 
+## 📊 Included Applications
+
+This media server setup includes three powerful containerized applications:
+
+### 🎬 **Jellyfin** - Media Server
+**Purpose:** Stream your personal media library (movies, TV shows, music, photos) across your network.
+
+- **Web UI:** http://<SERVER_IP>:8096
+- **Default Login:** Set via web UI on first access
+- **Features:**
+  - Free alternative to Plex with no account required
+  - Hardware-accelerated video transcoding (Intel QuickSync, AMD VAAPI, NVIDIA)
+  - Multi-user support with granular access controls
+  - Client apps for streaming on all devices
+- **Storage:** Media mounted read-only from `SERVER_MEDIA_DIR`
+- **Configuration:** `configs/jellyfin.container`
+- **Documentation:** [Jellyfin Official Docs](https://jellyfin.org/docs/)
+
+### 📥 **Deluge** - Torrent Client
+**Purpose:** Download content directly to your server via BitTorrent protocol.
+
+- **Web UI:** http://<SERVER_IP>:8112
+- **Default Login:** admin / deluge (⚠️ Change immediately after first login!)
+- **Features:**
+  - Lightweight and efficient torrent client
+  - Bandwidth rate limiting to prevent network saturation
+  - Automatic download categorization
+  - Plugin support for enhanced functionality
+- **Storage:** Downloads saved to `SERVER_DOWNLOAD_DIR`
+- **Configuration:** `configs/deluge.container`
+- **Documentation:** [Deluge Official Docs](https://deluge-torrent.org/)
+
+### 💾 **Duplicati** - Backup & Recovery
+**Purpose:** Securely backup your media library and server configurations to local or cloud storage.
+
+- **Web UI:** http://<SERVER_IP>:8200
+- **Default Login:** admin / admin (⚠️ Change immediately after first login!)
+- **Features:**
+  - End-to-end encryption for all backups
+  - Compression to reduce storage requirements
+  - Incremental backups to minimize bandwidth usage
+  - Support for multiple backends: Local, AWS S3, OneDrive, Google Drive, Dropbox, etc.
+  - Scheduled automated backups
+- **Storage:** Local backups stored in `DUPLICATI_BACKUP_DIR`
+- **Configuration:** `configs/duplicati.container`
+- **Documentation:** [Duplicati Official Docs](https://duplicati.com/)
+
 ## 📊 Management Dashboards
 Once the script completes, you can access your server via these interfaces:
 
-- **Cockpit Web UI:** https://<SERVER_IP>:9090 (Manage containers and files)
-- **Deluge:** http://<SERVER_IP>:8112
-- **Jellyfin:** http://<SERVER_IP>:8096
+- **Cockpit Web UI:** https://<SERVER_IP>:9090 (System management, containers, files)
+- **Jellyfin:** http://<SERVER_IP>:8096 (Media streaming)
+- **Deluge:** http://<SERVER_IP>:8112 (Torrent downloads)
+- **Duplicati:** http://<SERVER_IP>:8200 (Backup management)
 
 ## 🛠 Troubleshooting
 - **Logs:** To view live logs for any app: `journalctl --user -u <app_name> -f`
