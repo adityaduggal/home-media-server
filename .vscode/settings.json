@@ -1,0 +1,213 @@
+{
+  // ==============================================================================
+  // VS Code Workspace Settings - Home Media Server Project
+  // ==============================================================================
+  // These settings optimize the development experience for this repository.
+  // They enforce code quality, formatting, and provide helpful integrations.
+  //
+  // Recommended Extensions (see extensions.json):
+  //   - timonwong.shellcheck (Shell linting)
+  //   - DavidAnson.vscode-markdownlint (Markdown linting)
+  //   - esbenp.prettier-vscode (Code formatting)
+  //   - redhat.vscode-yaml (YAML support)
+  //   - EditorConfig.EditorConfig (EditorConfig support)
+  // ==============================================================================
+
+  // ==============================================================================
+  // [EDITOR BASICS]
+  // ==============================================================================
+  "editor.fontSize": 14,
+  "editor.fontFamily": "'Fira Code', 'Courier New', monospace",
+  "editor.fontLigatures": true,
+  "editor.lineHeight": 1.6,
+  "editor.wordWrap": "on",
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.trimAutoWhitespace": true,
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "editor.detectIndentation": true,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "editor.rulers": [80, 100],
+  "editor.renderWhitespace": "selection",
+
+  // ==============================================================================
+  // [THEME & APPEARANCE]
+  // ==============================================================================
+  "workbench.colorTheme": "One Dark Pro",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.startupEditor": "newUntitledFile",
+  "workbench.editor.tabSizing": "shrink",
+  "workbench.editor.showTabs": true,
+
+  // ==============================================================================
+  // [FORMATTING & PRETTIER]
+  // ==============================================================================
+  "[json]": {
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2
+  },
+  "[jsonc]": {
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2
+  },
+  "prettier.semi": true,
+  "prettier.singleQuote": false,
+  "prettier.trailingComma": "es5",
+  "prettier.bracketSpacing": true,
+  "prettier.printWidth": 100,
+
+  // ==============================================================================
+  // [SHELL SCRIPT LINTING]
+  // ==============================================================================
+  "[shellscript]": {
+    "editor.formatOnSave": false,
+    "editor.tabSize": 4
+  },
+  "shellcheck.enable": true,
+  "shellcheck.run": "onSave",
+  "shellcheck.executablePath": "shellcheck",
+  "shellcheck.ignorePatterns": {
+    "SC1091": true
+  },
+  "shellcheck.showPassingTests": false,
+
+  // ==============================================================================
+  // [MARKDOWN LINTING]
+  // ==============================================================================
+  "[markdown]": {
+    "editor.wordWrap": "on",
+    "editor.tabSize": 2,
+    "editor.formatOnSave": true
+  },
+  "markdownlint.enable": true,
+  "markdownlint.run": "onSave",
+  "markdownlint.config": {
+    "MD003": false,
+    "MD013": {
+      "line_length": 100,
+      "header_line_length": 100
+    },
+    "MD024": false,
+    "MD025": false,
+    "MD033": false,
+    "MD034": false
+  },
+
+  // ==============================================================================
+  // [FILE ASSOCIATIONS & LANGUAGES]
+  // ==============================================================================
+  "files.associations": {
+    "*.container": "ini",
+    "variables.env*": "shellscript",
+    ".pre-commit-config.yaml": "yaml",
+    ".editorconfig": "properties",
+    "Makefile": "makefile"
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.vscode": false,
+    "**/__pycache__": true,
+    "**/node_modules": true,
+    "**/.pytest_cache": true,
+    "**/.tox": true,
+    "*.log": true
+  },
+
+  // ==============================================================================
+  // [SEARCH & EXPLORER]
+  // ==============================================================================
+  "search.exclude": {
+    "**/.git": true,
+    "**/.vscode": true,
+    "node_modules": true,
+    "__pycache__": true,
+    ".pytest_cache": true,
+    "*.log": true
+  },
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/.pytest_cache/**": true
+  },
+  "explorer.excludeGitIgnore": true,
+  "explorer.sortOrder": "alphabetical",
+
+  // ==============================================================================
+  // [GIT INTEGRATION]
+  // ==============================================================================
+  "git.ignoreLimitWarning": true,
+  "git.autoRepositoryDetection": true,
+  "git.autofetch": true,
+  "git.confirmSync": true,
+  "git.showPushSuccessNotification": true,
+
+  // ==============================================================================
+  // [TERMINAL]
+  // ==============================================================================
+  "terminal.integrated.fontSize": 12,
+  "terminal.integrated.lineHeight": 1.5,
+  "terminal.integrated.defaultProfile.linux": "bash",
+  "terminal.integrated.profiles.linux": {
+    "bash": {
+      "path": "bash",
+      "icon": "terminal-bash",
+      "args": ["-l"]
+    }
+  },
+  "terminal.integrated.scrollback": 5000,
+  "terminal.integrated.copyOnSelection": true,
+
+  // ==============================================================================
+  // [LINTING & CODE QUALITY]
+  // ==============================================================================
+  "yamllint.enable": true,
+  "yamllint.format.enable": true,
+
+  // ==============================================================================
+  // [EDITOR CONFIG]
+  // ==============================================================================
+  "editorconfig.enable": true,
+
+  // ==============================================================================
+  // [SUGGESTIONS & AUTOCOMPLETE]
+  // ==============================================================================
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": true,
+    "strings": true
+  },
+  "editor.suggestSelection": "first",
+  "editor.suggest.showStatusBar": true,
+  "editor.acceptSuggestionOnCommitCharacter": true,
+
+  // ==============================================================================
+  // [DEBUGGING]
+  // ==============================================================================
+  "debug.showBreakpointsInEditor": true,
+  "debug.showInlineBreakpointCandidates": true,
+
+  // ==============================================================================
+  // [MISC HELPFUL SETTINGS]
+  // ==============================================================================
+  "files.autoSave": "onFocusChange",
+  "editor.minimap.enabled": true,
+  "editor.minimap.maxColumn": 200,
+  "breadcrumbs.enabled": true,
+  "telemetry.telemetryLevel": "off",
+  "extensions.autoUpdate": true,
+
+  // ==============================================================================
+  // [LANGUAGE SPECIFIC]
+  // ==============================================================================
+  "[properties]": {
+    "editor.tabSize": 2
+  },
+  "[yaml]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  }
+}
