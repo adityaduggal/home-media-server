@@ -40,7 +40,7 @@
   "workbench.iconTheme": "material-icon-theme",
   "workbench.startupEditor": "newUntitledFile",
   "workbench.editor.tabSizing": "shrink",
-  "workbench.editor.showTabs": true,
+  "workbench.editor.showTabs": "multiple",
 
   // ==============================================================================
   // [FORMATTING & PRETTIER]

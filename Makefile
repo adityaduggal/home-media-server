@@ -150,10 +150,12 @@ install-tools:
 	@command -v shellcheck > /dev/null || sudo apt-get install -y shellcheck
 	@echo "Installing jq..."
 	@command -v jq > /dev/null || sudo apt-get install -y jq
+	@echo "Installing Node.js and npm (required for markdownlint and prettier)..."
+	@command -v npm > /dev/null || sudo apt-get install -y nodejs npm
 	@echo "Installing markdownlint..."
-	@command -v markdownlint > /dev/null || npm install -g markdownlint-cli
+	@command -v markdownlint > /dev/null || sudo npm install -g markdownlint-cli
 	@echo "Installing Prettier..."
-	@command -v prettier > /dev/null || npm install -g prettier
+	@command -v prettier > /dev/null || sudo npm install -g prettier
 	@echo "$(GREEN)✓ All tools installed$(NC)"
 
 clean:
