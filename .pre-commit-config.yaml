@@ -1,0 +1,117 @@
+# Pre-commit hook configuration
+# Automatically runs linters and formatters before git commits
+#
+# Installation:
+#   pip install pre-commit
+#   pre-commit install
+#
+# Manual run:
+#   pre-commit run --all-files
+#
+# Skip pre-commit for a commit:
+#   git commit --no-verify
+#
+# See https://pre-commit.com for more information
+
+repos:
+  # Shell script linting with ShellCheck
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.2
+    hooks:
+      - id: shellcheck
+        name: ShellCheck
+        description: Shell script static analysis
+        entry: shellcheck
+        language: python
+        types: [shell]
+        args: [-x]
+
+  # Markdown linting with markdownlint
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.37.0
+    hooks:
+      - id: markdownlint
+        name: Markdownlint
+        description: Markdown linting
+        entry: markdownlint
+        language: node
+        types: [markdown]
+        args: [--config, .markdownlint.json]
+
+  # YAML linting
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.33.0
+    hooks:
+      - id: yamllint
+        name: yamllint
+        description: YAML linting
+        entry: yamllint
+        language: python
+        types: [yaml]
+        args: [-c, .yamllint]
+
+  # JSON validation
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-json
+        name: Check JSON
+        description: Validates JSON files
+        entry: check-json
+        language: python
+        types: [json]
+
+      - id: check-merge-conflict
+        name: Check for merge conflicts
+        description: Check for files that would conflict in merge
+        entry: check-merge-conflict
+        language: python
+
+      - id: check-symlinks
+        name: Check for broken symlinks
+        description: Check for symlinks which do not point to anything
+        entry: check-symlinks
+        language: python
+        types: [symlink]
+
+      - id: end-of-file-fixer
+        name: Fix End of File
+        description: Ensures files end with a newline
+        entry: end-of-file-fixer
+        language: python
+        types: [text]
+
+      - id: trailing-whitespace
+        name: Trim Trailing Whitespace
+        description: Trims trailing whitespace
+        entry: trailing-whitespace-fixer
+        language: python
+        types: [text]
+
+      - id: check-case-conflict
+        name: Check for case conflicts
+        description: Check for files that would conflict in case-insensitive filesystems
+        entry: check-case-conflict
+        language: python
+
+  # Prettier code formatting (optional - uncomment to enable)
+  - repo: https://github.com/pre-commit/mirrors-prettier
+     rev: v3.1.0
+     hooks:
+       - id: prettier
+         name: Prettier
+         description: Code formatter
+         entry: prettier
+         language: node
+         types: [markdown, json]
+
+# Global exclusions
+exclude: |
+  (?x)^(
+    \.git|
+    \.vscode|
+    node_modules|
+    __pycache__|
+    \.pytest_cache|
+    \.tox
+  )
