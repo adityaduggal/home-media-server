@@ -1,0 +1,99 @@
+# ==============================================================================
+# Duplicati Backup Solution - Podman Quadlet Configuration
+# ==============================================================================
+# Duplicati is a free backup client that securely backs up your files to
+# cloud storage or local destinations. Features end-to-end encryption,
+# compression, and incremental backups to minimize storage usage.
+#
+# Image: linuxserver/duplicati:latest
+# Default Port: 8200 (configurable via DUPLICATI_PORT in variables.env)
+# Storage: Backups stored in DUPLICATI_BACKUP_DIR
+# ==============================================================================
+
+[Unit]
+Description=Duplicati Backup Client
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+# Official Duplicati image from LinuxServer.io - maintained and secure
+Image=lscr.io/linuxserver/duplicati:latest
+ContainerName=duplicati
+
+# --- ENVIRONMENT VARIABLES ---
+# These are injected from variables.env during setup via envsubst
+Environment=TZ=${TIMEZONE}
+Environment=CLI_ARGS=${DUPLICATI_CLI_ARGS}
+
+# --- PORT MAPPING ---
+# Container port 8200 → Host port (${DUPLICATI_PORT} from variables.env)
+# Example: 8200:8200 exposes Duplicati Web UI at http://SERVER_IP:8200
+PublishPort=${DUPLICATI_PORT}:8200
+
+# --- VOLUME MAPPINGS ---
+# :ro = read-only (safe for source data)
+# :rw = read-write (needed for config/backups)
+Volume=${SERVER_PODMAN_CONFIG_DIR}/duplicati:/config:rw
+  # Persistent storage for Duplicati configuration and database
+Volume=${DUPLICATI_BACKUP_DIR}:/backups:rw
+  # Backup destination - where encrypted backups are stored locally
+Volume=${SERVER_MEDIA_DIR}:/source:ro
+  # Media directory to backup (read-only protection)
+Volume=${SERVER_PODMAN_CONFIG_DIR}:/additional_source:ro
+  # Additional configuration files to backup (read-only)
+
+# --- SECURITY & PERMISSIONS ---
+# Run as non-root user for better security
+# User=${SERVER_USER}
+# Optional: Set container UID/GID to match host user
+# Environment=PUID=1000
+# Environment=PGID=1000
+
+[Service]
+# --- SERVICE BEHAVIOR ---
+# Automatically restart container on failure
+# Ensures backups continue running reliably
+Restart=always
+RestartMaxDelaySec=5min
+  # Maximum delay between restart attempts
+# Resource limits for the container
+MemoryLimit=${DUPLICATI_MEMORY_LIMIT}
+  # Memory limit - set in variables.env
+CPUQuota=${DUPLICATI_CPU_LIMIT}
+  # CPU cores available to container
+
+[Install]
+# --- SERVICE BOOT BEHAVIOR ---
+# Starts automatically when system boots (requires systemctl --user enable duplicati)
+WantedBy=multi-user.target
+
+# ==============================================================================
+# TROUBLESHOOTING & COMMON ISSUES
+# ==============================================================================
+# Issue: "Web UI unreachable at http://SERVER_IP:DUPLICATI_PORT"
+# Solution: Check port mapping - verify DUPLICATI_PORT is not in use:
+#           lsof -i :DUPLICATI_PORT or netstat -tulpn | grep DUPLICATI_PORT
+#
+# Issue: "Cannot backup media files - permission denied"
+# Solution: Verify SERVER_MEDIA_DIR is readable and mounted with :ro flag
+#           Check file permissions: ls -la $SERVER_MEDIA_DIR
+#
+# Issue: "Backup process running very slow"
+# Solution: Enable compression in Duplicati settings
+#           Adjust CPU/memory limits if system is constrained
+#           Consider running backups during off-peak hours (cron schedule)
+#
+# Issue: "Backup storage running out of space"
+# Solution: Configure retention policies in Duplicati web UI (keep only recent versions)
+#           Move DUPLICATI_BACKUP_DIR to storage with more space
+#           Enable compression to reduce backup size
+#
+# Issue: "Cannot connect to cloud storage (AWS S3, OneDrive, etc.)"
+# Solution: Verify cloud storage credentials are correct in web UI
+#           Check network connectivity to cloud provider
+#           Review firewall rules if using custom ports
+#
+# View logs: journalctl --user -u duplicati -f
+# Restart:   systemctl --user restart duplicati
+# Stop:      systemctl --user stop duplicati
+# ==============================================================================
