@@ -2,6 +2,11 @@
     "recommendations": [
         "GitHub.remotehub",
         "github.vscode-github-actions",
-        "ms-vscode-remote.remote-ssh"
+        "ms-vscode-remote.remote-ssh",
+        "timonwong.shellcheck",
+        "DavidAnson.vscode-markdownlint",
+        "esbenp.prettier-vscode",
+        "redhat.vscode-yaml",
+        "EditorConfig.EditorConfig"
     ]
 }
