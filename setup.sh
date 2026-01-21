@@ -1,70 +1,129 @@
 #!/bin/bash
 
-# --- 1. VARIABLES (Dynamic Options) ---
-# You can move these to variables.env later
-SERVER_NAME="duggals"
-SERVER_IP="10.3.0.5"
-SERVER_USER="aditya"
-MEDIA_DIR="/home_media"
-PODMAN_CONFIG_DIR="/opt/aditya/podman_configs"
-TIMEZONE="Asia/Kolkata"
+# ==============================================================================
+# Home Media Server Automator (Scalable Version)
+# ==============================================================================
 
-echo "--- Starting Home Media Server Setup for $SERVER_NAME ---"
+# --- 1. LOAD ENVIRONMENT VARIABLES ---
+if [ ! -f variables.env ]; then
+    echo "❌ Error: variables.env not found!"
+    echo "Please run: cp variables.env.example variables.env"
+    exit 1
+fi
 
-# --- 2. TIMEZONE SETUP ---
-echo "[*] Checking Timezone..."
-CURRENT_TZ=$(cat /etc/timezone)
-if [ "$CURRENT_TZ" != "$TIMEZONE" ]; then
-    read -p "Current TZ is $CURRENT_TZ. Change to $TIMEZONE? (y/n) " tz_answer
-    if [ "$tz_answer" == "y" ]; then
-        sudo timedatectl set-timezone $TIMEZONE
-        echo "Timezone updated."
+set -a
+source ./variables.env
+set +a
+
+echo "🚀 Starting Setup for Server: $SERVER_NAME ($SERVER_IP)"
+
+# --- 2. HELPER FUNCTIONS ---
+
+check_ssh_keys() {
+    echo "🔍 Checking for SSH Public Keys..."
+    if [ ! -f "$HOME/.ssh/authorized_keys" ] || [ ! -s "$HOME/.ssh/authorized_keys" ]; then
+        echo "⚠️  CRITICAL: NO PUBLIC KEYS DETECTED."
+        read -p "Continue WITHOUT disabling passwords? (y/n) " cont_ssh
+        [[ ! $cont_ssh =~ ^[Yy]$ ]] && exit 1
+        return 1
+    else
+        echo "✅ SSH Public Key verified."
+        return 0
     fi
-fi
+}
 
-# --- 3. SSH SECURITY (Keys vs Passwords) ---
-echo "[*] Checking SSH Configuration..."
-if [ ! -f ~/.ssh/authorized_keys ]; then
-    echo "CRITICAL: No public keys found in ~/.ssh/authorized_keys."
-    echo "HELP: Please run 'ssh-copy-id' from your local machine before disabling passwords."
-else
-    echo "Public key found. Checking if password login is disabled..."
-    if grep -q "^PasswordAuthentication yes" /etc/ssh/sshd_config; then
-        read -p "Password login is currently ENABLED. Disable it now? (y/n) " ssh_answer
-        if [ "$ssh_answer" == "y" ]; then
-            sudo sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
-            sudo systemctl restart ssh
-            echo "Password authentication disabled."
-        fi
+configure_timezone() {
+    echo "⏰ Checking Timezone..."
+    CURRENT_TZ=$(timedatectl show --property=Timezone --value)
+    if [ "$CURRENT_TZ" != "$TIMEZONE" ]; then
+        sudo timedatectl set-timezone "$TIMEZONE"
+        echo "✅ Timezone updated to $TIMEZONE."
     fi
+}
+
+# --- 3. SYSTEM INSTALLATION ---
+echo "🔄 Updating system and installing dependencies..."
+sudo apt update && sudo apt install -y cockpit cockpit-podman podman curl wget gettext
+
+# Cockpit Navigator Installation
+if [ ! -d "/usr/share/cockpit/navigator" ]; then
+    echo "📂 Installing Cockpit Navigator..."
+    wget -q https://github.com/45Drives/cockpit-navigator/releases/latest/download/cockpit-navigator_0.5.10-1focal_all.deb -O /tmp/navigator.deb
+    sudo apt install -y /tmp/navigator.deb
+    rm /tmp/navigator.deb
 fi
 
-# --- 4. INSTALL COCKPIT & PLUGINS ---
-echo "[*] Setting up Cockpit and Podman..."
-sudo apt update && sudo apt install -y cockpit cockpit-podman podman podman-compose
-
-# Check for Cockpit-File-Sharing (The best file manager for Cockpit)
-if [ ! -d "/usr/share/cockpit/file-sharing" ]; then
-    echo "Installing Cockpit File Sharing plugin..."
-    # Commands to download/install the specific .deb for the navigator
-    # (e.g., wget from 45Drives/cockpit-navigator)
+# Run System Checks
+configure_timezone
+if check_ssh_keys && [ "$DISABLE_SSH_PASSWORDS" = "true" ]; then
+    echo "🔒 Hardening SSH..."
+    sudo sed -i 's/^#*PasswordAuthentication .*/PasswordAuthentication no/' /etc/ssh/sshd_config
+    sudo systemctl restart ssh
 fi
 
-# --- 5. PODMAN CONFIGS & REGISTRIES ---
-mkdir -p $PODMAN_CONFIG_DIR
-# Custom Registry Example
-if [ ! -f /etc/containers/registries.conf ]; then
-    echo "[*] Setting up custom registries..."
-    # Append custom registry logic here
-fi
+# Ensure Linger is enabled so containers run without active SSH session
+sudo loginctl enable-linger $USER
 
-# --- 6. DELUGE & JELLYFIN SETUP ---
-echo "[*] Deploying Media Containers..."
-# Set permissions for media dir
-sudo chown -R $SERVER_USER:$SERVER_USER $MEDIA_DIR
-sudo chmod -R 775 $MEDIA_DIR
+# --- 4. DIRECTORY & PERMISSIONS SETUP ---
+echo "📁 Preparing directories..."
+# Create media and config base dirs
+sudo mkdir -p "$SERVER_MEDIA_DIR" "$SERVER_PODMAN_CONFIG_DIR"
+sudo chown -R $USER:$USER "$SERVER_MEDIA_DIR" "$SERVER_PODMAN_CONFIG_DIR"
 
-# Trigger Podman to run containers based on your repo files
-# podman-compose -f configs/deluge.yml up -d
+# --- 5. DYNAMIC APP DEPLOYMENT (THE LOOP) ---
+QUADLET_DIR="$HOME/.config/containers/systemd"
+mkdir -p "$QUADLET_DIR"
 
-echo "--- Setup Complete! Access Cockpit at https://$SERVER_IP:9090 ---"
+echo "📦 Deploying App Containers..."
+
+# Loop through all .container files in the configs directory
+for container_file in configs/*.container; do
+    [ -e "$container_file" ] || continue # Handle empty directory
+    
+    APP_NAME=$(basename "$container_file" .container)
+    echo "  -> Deploying $APP_NAME..."
+
+    # 1. Create specific config sub-folder for the app
+    mkdir -p "$SERVER_PODMAN_CONFIG_DIR/$APP_NAME"
+
+    # 2. Use envsubst to swap ${VARIABLES} and save to systemd path
+    envsubst < "$container_file" > "$QUADLET_DIR/$APP_NAME.container"
+done
+
+# --- 6. START SERVICES ---
+echo "⚙️  Refreshing Systemd and starting services..."
+systemctl --user daemon-reload
+
+# Enable and start all apps found in the configs folder
+for container_file in configs/*.container; do
+    [ -e "$container_file" ] || continue
+    APP_NAME=$(basename "$container_file" .container)
+    systemctl --user enable --now "$APP_NAME"
+    echo "✅ $APP_NAME service is active."
+done
+
+
+# --- 7. FINAL STATUS REPORT ---
+echo ""
+echo "-------------------------------------------------------"
+echo "🏁 SETUP COMPLETE - SERVICE SUMMARY"
+echo "-------------------------------------------------------"
+echo "Server Name:  $SERVER_NAME"
+echo "Cockpit UI:   https://$SERVER_IP:9090"
+echo "-------------------------------------------------------"
+
+# Loop through the config files again to check status and show ports
+for container_file in configs/*.container; do
+    [ -e "$container_file" ] || continue
+    APP_NAME=$(basename "$container_file" .container)
+    
+    # Enable and start the service
+    systemctl --user enable --now "$APP_NAME" > /dev/null 2>&1
+    
+    # Determine the status
+    STATUS=$(systemctl --user is-active "$APP_NAME")
+    
+    # Get the port from the env variables (dynamic lookup)
+    # We look for a variable named APPNAME_PORT (e.g., JELLYFIN_PORT)
+    VAR_NAME=$(echo "${APP_NAME}_PORT" | tr '[:lower:]' '[:upper:]')
+    PORT_VAL=${!VAR_NAME}
