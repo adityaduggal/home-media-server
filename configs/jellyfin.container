@@ -1,0 +1,99 @@
+# ==============================================================================
+# Jellyfin Media Server - Podman Quadlet Configuration
+# ==============================================================================
+# A modern media system that presents your personal media (movies, TV shows,
+# music, photos) in a clean interface similar to Plex. Includes hardware-
+# accelerated video transcoding for efficient streaming across networks.
+#
+# Image: jellyfin/jellyfin:latest
+# Default Port: 8096 (configurable via JELLYFIN_PORT in variables.env)
+# Storage: All media loaded from SERVER_MEDIA_DIR (read-only)
+# ==============================================================================
+
+[Unit]
+Description=Jellyfin Media Server
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+# Official Jellyfin image from Docker Hub
+Image=docker.io/jellyfin/jellyfin:latest
+ContainerName=jellyfin
+
+# --- ENVIRONMENT VARIABLES ---
+# These are injected from variables.env during setup via envsubst
+Environment=TZ=${TIMEZONE}
+Environment=JELLYFIN_PublishedServerUrl=${SERVER_IP}
+# Optional: Uncomment to enable debug logging
+# Environment=JELLYFIN_DEBUG=true
+Environment=JELLYFIN_LOG_LEVEL=${JELLYFIN_LOG_LEVEL}
+Environment=JELLYFIN_FFmpeg__encodeqp=23
+
+# --- PORT MAPPING ---
+# Container port 8096 → Host port (${JELLYFIN_PORT} from variables.env)
+# Example: 8096:8096 exposes Jellyfin at http://SERVER_IP:8096
+PublishPort=${JELLYFIN_PORT}:8096
+
+# --- VOLUME MAPPINGS ---
+# :ro = read-only (safe for media)
+# :rw = read-write (needed for config/database)
+Volume=${SERVER_MEDIA_DIR}:/data/media:ro
+  # Read-only access to all media (movies, TV, music, photos)
+Volume=${SERVER_PODMAN_CONFIG_DIR}/jellyfin:/config:rw
+  # Persistent storage for database, cache, user settings
+Volume=${JELLYFIN_TRANSCODE_DIR}:/transcode:rw
+  # Temporary directory for video transcoding (high I/O)
+Volume=${JELLYFIN_CACHE_DIR}:/cache:rw
+  # Cache for thumbnails, metadata, artwork
+
+# --- HARDWARE VIDEO ACCELERATION ---
+# For systems with Intel iGPU or AMD GPU
+# Allows Jellyfin to transcode video efficiently without maxing CPU
+# Device path may vary: /dev/dri/renderD128 (Intel) or /dev/dri/card0 (AMD)
+# To check available devices on your system: ls -la /dev/dri/
+#
+# ⚠️  OPTIONAL: Enable only if you have a compatible GPU
+# Set JELLYFIN_ENABLE_GPU_ACCELERATION=true in variables.env to enable
+# Uncomment the following lines if GPU available and enabled:
+# Device=${JELLYFIN_GPU_DEVICE}:${JELLYFIN_GPU_DEVICE}
+#   # GPU device for hardware acceleration
+# GroupAdd=keep-groups
+#   # Maintains container group membership for device access
+#
+# NOTE: If GPU passthrough fails, leave commented - Jellyfin falls back to CPU transcoding
+
+[Service]
+# --- SERVICE BEHAVIOR ---
+# Automatically restart container on failure
+# Ensures 24/7 availability for media streaming
+Restart=always
+RestartMaxDelaySec=5min
+  # Maximum delay between restart attempts
+# Resource limits for the container
+MemoryLimit=${JELLYFIN_MEMORY_LIMIT}
+  # Memory limit - set in variables.env
+CPUQuota=${JELLYFIN_CPU_LIMIT}
+  # CPU cores available to container
+
+[Install]
+# --- SERVICE BOOT BEHAVIOR ---
+# Starts automatically when system boots (requires systemctl --user enable jellyfin)
+WantedBy=multi-user.target
+
+# ==============================================================================
+# TROUBLESHOOTING & COMMON ISSUES
+# ==============================================================================
+# Issue: "Failed to find device /dev/dri/renderD128"
+# Solution: Comment out Device/GroupAdd lines or check correct GPU device path
+#
+# Issue: "Cannot access media files"
+# Solution: Verify SERVER_MEDIA_DIR exists and contains media files
+#
+# Issue: "Service starts but web UI unreachable"
+# Solution: Check port mapping - verify JELLYFIN_PORT is not in use:
+#           lsof -i :JELLYFIN_PORT or netstat -tulpn | grep JELLYFIN_PORT
+#
+# View logs: journalctl --user -u jellyfin -f
+# Restart:   systemctl --user restart jellyfin
+# Stop:      systemctl --user stop jellyfin
+# ==============================================================================
