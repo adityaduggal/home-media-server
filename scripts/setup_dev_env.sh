@@ -35,32 +35,33 @@ fi
 echo "📍 Detected OS Codename: $CODENAME"
 
 # --- 1. Fix Proxmox Repositories (if on PVE) ---
-if [ -f /etc/pve/local/pve-ssl.key ]; then
-    echo "--- 🔧 Proxmox VE detected. Fixing repositories ---"
+# Check for PVE by looking for common PVE files or the enterprise repo string
+if [ -f /etc/pve/local/pve-ssl.key ] || grep -qri "enterprise.proxmox.com" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null; then
+    echo "--- 🔧 Proxmox VE components detected. Fixing repositories ---"
     
-    # Disable PVE Enterprise
-    if [ -f /etc/apt/sources.list.d/pve-enterprise.list ]; then
-        echo "Disabling pve-enterprise repository..."
-        sudo sed -i 's/^deb/#deb/g' /etc/apt/sources.list.d/pve-enterprise.list
-    fi
+    # Aggressively disable any enterprise repositories in all apt sources
+    echo "Disabling enterprise repositories..."
+    # Find all files containing enterprise.proxmox.com and comment out those lines
+    sudo grep -rl "enterprise.proxmox.com" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null | while read -r file; do
+        echo "Found enterprise repo in $file - commenting out..."
+        sudo sed -i 's/^\s*deb/# deb/g' "$file"
+    done
 
-    # Disable Ceph Enterprise
-    if [ -f /etc/apt/sources.list.d/ceph.list ]; then
-        echo "Disabling ceph-enterprise repository..."
-        sudo sed -i 's/^deb/#deb/g' /etc/apt/sources.list.d/ceph.list
-    fi
-
-    # Enable PVE No-Subscription
-    if ! grep -q "pve-no-subscription" /etc/apt/sources.list && ! grep -q "pve-no-subscription" /etc/apt/sources.list.d/* 2>/dev/null; then
+    # Enable PVE No-Subscription if not already present
+    if ! grep -qri "pve-no-subscription" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null; then
         echo "Enabling pve-no-subscription repository..."
-        echo "deb http://download.proxmox.com/debian/pve $CODENAME pve-no-subscription" | sudo tee -a /etc/apt/sources.list
+        echo "deb http://download.proxmox.com/debian/pve $CODENAME pve-no-subscription" | sudo tee /etc/apt/sources.list.d/pve-no-sub.list
     fi
 
-    # Enable Ceph No-Subscription (if Ceph is installed)
-    if [ -f /etc/apt/sources.list.d/ceph.list ] && ! grep -q "no-subscription" /etc/apt/sources.list.d/ceph.list; then
+    # Enable Ceph No-Subscription if not already present
+    if ! grep -qri "no-subscription" /etc/apt/sources.list.d/ 2>/dev/null | grep -v "pve-no-subscription"; then
          echo "Enabling ceph no-subscription repository..."
-         # Default to 'reef' as a safe modern default for Ceph no-sub
-         echo "deb http://download.proxmox.com/debian/ceph-reef $CODENAME no-subscription" | sudo tee /etc/apt/sources.list.d/ceph.list
+         # Detect if we should use squid (Proxmox 8.x/9.x) or reef (Proxmox 8.x)
+         CEPH_VERSION="reef"
+         if grep -qi "ceph-squid" /etc/apt/sources.list.d/* 2>/dev/null; then
+            CEPH_VERSION="squid"
+         fi
+         echo "deb http://download.proxmox.com/debian/ceph-$CEPH_VERSION $CODENAME no-subscription" | sudo tee /etc/apt/sources.list.d/ceph-no-sub.list
     fi
 else
     echo "--- ✨ Standard Debian/Ubuntu detected. Skipping PVE repo fix. ---"
@@ -68,7 +69,8 @@ fi
 
 # --- 2. Update and Install Base Tools ---
 echo "--- 📦 Updating APT and installing base tools ---"
-sudo apt update
+# Use --allow-releaseinfo-change in case the user is on a testing branch (like trixie)
+sudo apt update || sudo apt update --allow-releaseinfo-change
 sudo apt install -y curl git unzip gnupg software-properties-common
 
 # --- 3. Install Terraform ---
