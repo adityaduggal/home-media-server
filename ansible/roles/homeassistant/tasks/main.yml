@@ -24,7 +24,7 @@
       - "/etc/localtime:/etc/localtime:ro"
     labels:
       traefik.enable: "true"
-      traefik.http.routers.hass.rule: "Host(`home.{{ domain_name }}`) || Host(`homeassistant.{{ domain_name }}`)"
+      traefik.http.routers.hass.rule: "Host(`home{{ dev_suffix }}.{{ domain_name }}`) || Host(`homeassistant{{ dev_suffix }}.{{ domain_name }}`)"
       traefik.http.routers.hass.entrypoints: "websecure"
       traefik.http.routers.hass.tls.certresolver: "letsencrypt"
       # Home Assistant usually listens on 8123

@@ -17,7 +17,7 @@ http:
     shortname-regex-replace:
       redirectRegex:
         regex: "^https?://([a-z0-9-]+)/?$"
-        replacement: "https://${1}.{{ domain_name }}/"
+        replacement: "https://${1}{{ dev_suffix }}.{{ domain_name }}/"
         permanent: true
 
   services:

@@ -27,10 +27,10 @@ ansible-playbook -i ansible/inventories/dev ansible/site.yml
 
 ## 3. Verifying Services
 
-Since Dev uses the same subdomains as Prod (e.g., `radarr.j1103.in`), you must override DNS locally on your testing machine to access the Dev instance.
+Since Dev uses suffixed subdomains (e.g., `radarr-dev.j1103.in`), you must override DNS locally on your testing machine to access the Dev instance.
 
 **Edit your local `/etc/hosts` or Windows Hosts file:**
 
 ```text
-10.3.2.101  radarr.j1103.in sonarr.j1103.in jellyfin.j1103.in
+10.3.99.101  radarr-dev.j1103.in sonarr-dev.j1103.in jellyfin-dev.j1103.in
 ```

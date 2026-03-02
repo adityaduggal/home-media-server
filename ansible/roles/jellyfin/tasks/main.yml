@@ -43,7 +43,7 @@
     labels:
       # 🚏 Traefik labels for reverse proxying
       traefik.enable: "true"
-      traefik.http.routers.jellyfin.rule: "Host(`jellyfin.{{ domain_name }}`) || Host(`media.{{ domain_name }}`)"
+      traefik.http.routers.jellyfin.rule: "Host(`jellyfin{{ dev_suffix }}.{{ domain_name }}`) || Host(`media{{ dev_suffix }}.{{ domain_name }}`)"
       traefik.http.routers.jellyfin.entrypoints: "websecure"
       traefik.http.routers.jellyfin.tls.certresolver: "letsencrypt"
       traefik.http.services.jellyfin.loadbalancer.server.port: "8096"

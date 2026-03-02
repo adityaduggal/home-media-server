@@ -34,7 +34,8 @@ gateway:
   features: ["DHCP"]
 
 # --- Domain & SSL ---
-domain_name: "dev.{{ lookup('env', 'DOMAIN') | default('j1103.in', true) }}"
+domain_name: "{{ lookup('env', 'DOMAIN') | default('j1103.in', true) }}"
+dev_suffix: "-dev"
 acme_email: "{{ lookup('env', 'ACME_EMAIL') | default('admin@j1103.in', true) }}"
 letsencrypt_env: "{{ lookup('env', 'LETSENCRYPT_ENV') | default('staging', true) }}"
 

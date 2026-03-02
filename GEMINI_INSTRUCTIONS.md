@@ -20,19 +20,19 @@
 - `/ansible/prod`: Production inventory and vars
 
 ## Applications to Be Used
-    - Traefic for reverse proxy (proxy.domain_name)
+    - Traefic for reverse proxy (proxy{{ dev_suffix }}.domain_name)
         - Auto provisioning of Traefic on creation of LXC or VM in Proxmox
         - All the lxc and vm would have tags in notes for 
-    - Jellyfin for streaming (jellyfin.domain_name and media.domain_name)
-    - Deluge for Torrent Client (deluge.domain_name, torrent.domain_name)
-    - Radarr for Movies (radarr.domain_name, movies.domain_name)
-    - Sonarr for TV Shows (sonarr.domain_name, tv.domain_name)
-    - Prowlarr for Indexing of Sources (prowlarr.domain_name, index.domain_name)
-    - Bazarr for Managing Subtitles (bazarr.domain_name, subtitles.domain_name)
+    - Jellyfin for streaming (jellyfin{{ dev_suffix }}.domain_name and media{{ dev_suffix }}.domain_name)
+    - Deluge for Torrent Client (deluge{{ dev_suffix }}.domain_name, torrent{{ dev_suffix }}.domain_name)
+    - Radarr for Movies (radarr{{ dev_suffix }}.domain_name, movies{{ dev_suffix }}.domain_name)
+    - Sonarr for TV Shows (sonarr{{ dev_suffix }}.domain_name, tv{{ dev_suffix }}.domain_name)
+    - Prowlarr for Indexing of Sources (prowlarr{{ dev_suffix }}.domain_name, index{{ dev_suffix }}.domain_name)
+    - Bazarr for Managing Subtitles (bazarr{{ dev_suffix }}.domain_name, subtitles{{ dev_suffix }}.domain_name)
     - Flaresolverr for solving needed for certain sources in Prowlarr
-    - Jellyserr for Requests for new media content (jellyserr.domain_name, requests.domain_name)
-    - Recyclarr for Sync Profiles for Security (recyclarr.domain_name, sync.domain_name)
-    - Home Assistant for Smart Home (homeassistant.domain_name, home.domain_name)
+    - Jellyserr for Requests for new media content (jellyserr{{ dev_suffix }}.domain_name, requests{{ dev_suffix }}.domain_name)
+    - Recyclarr for Sync Profiles for Security (recyclarr{{ dev_suffix }}.domain_name, sync{{ dev_suffix }}.domain_name)
+    - Home Assistant for Smart Home (homeassistant{{ dev_suffix }}.domain_name, home{{ dev_suffix }}.domain_name)
 
 ## Application Settings
     - All the above application settings should be installed in a click.

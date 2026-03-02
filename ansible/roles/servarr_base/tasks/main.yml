@@ -42,7 +42,7 @@
       - "{{ download_mount_path }}:/downloads"
     labels:
       traefik.enable: "true"
-      traefik.http.routers.{{ item.name }}.rule: "Host(`{{ item.subdomain }}.{{ domain_name }}`) || Host(`{{ item.alt_domain }}.{{ domain_name }}`)"
+      traefik.http.routers.{{ item.name }}.rule: "Host(`{{ item.subdomain }}{{ dev_suffix }}.{{ domain_name }}`) || Host(`{{ item.alt_domain }}{{ dev_suffix }}.{{ domain_name }}`)"
       traefik.http.routers.{{ item.name }}.entrypoints: "websecure"
       traefik.http.routers.{{ item.name }}.tls.certresolver: "letsencrypt"
       traefik.http.services.{{ item.name }}.loadbalancer.server.port: "{{ item.port }}"

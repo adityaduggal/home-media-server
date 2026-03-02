@@ -34,7 +34,7 @@
       - "58846:58846" # Daemon Port
     labels:
       traefik.enable: "true"
-      traefik.http.routers.deluge.rule: "Host(`deluge.{{ domain_name }}`) || Host(`torrent.{{ domain_name }}`)"
+      traefik.http.routers.deluge.rule: "Host(`deluge{{ dev_suffix }}.{{ domain_name }}`) || Host(`torrent{{ dev_suffix }}.{{ domain_name }}`)"
       traefik.http.routers.deluge.entrypoints: "websecure"
       traefik.http.routers.deluge.tls.certresolver: "letsencrypt"
       traefik.http.services.deluge.loadbalancer.server.port: "8112"
